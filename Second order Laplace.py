@@ -1,53 +1,40 @@
 import sympy as sym
 import matplotlib.pyplot as plt
-from sympy.abc import s, t, x, y, z
+from sympy.abc import s, t
 import numpy as np
-from sympy.integrals import inverse_laplace_transform
 
-# Define inputs
+# Testing Laplace Output
+y1 = sym.sin(t)
+Y1 = sym.laplace_transform(y1, t, s)
 
-# First step starts at 1 sec
-U1 = 2 / s * sym.exp(-s)
-# Ramp down starts at 3 sec
-U2 = -1 / s ** 2 * sym.exp(-3 * s)
-# Ramp down done at 5 sec
-U3 = 1 / s ** 2 * sym.exp(-5 * s)
+print('Your equation in the frequency domain is: ' + str(Y1[0]))
 
-# Transfer function
-G = 5 * (s + 1) / (s + 3) ** 2
+# Inversing and plotting
+y2 = sym.inverse_laplace_transform(Y1[0], s, t)
 
-# Calculate responces
-Y1 = G * U1
-Y2 = G * U2
-Y3 = G * U3
+# Gives a 'Heaviside(t)' at the end; print(y2)
+char_holder = str(y2)
 
-# Inverse Laplace Transforms
-u1 = inverse_laplace_transform(U1, s, t)
-u2 = inverse_laplace_transform(U2, s, t)
-u3 = inverse_laplace_transform(U3, s, t)
-y1 = inverse_laplace_transform(Y1, s, t)
-y2 = inverse_laplace_transform(Y2, s, t)
-y3 = inverse_laplace_transform(Y3, s, t)
+# Removing Heaviside(t)
+no_heaviside = ''
+for i in range(len(char_holder)):
+    if char_holder[i + 1] != 'H':
+        no_heaviside += char_holder[i]
+    else:
+        break
+print('Your equation in the time domain is: ' + no_heaviside)
 
-print("y1")
-print(y1)
+# Plotting
+time = np.linspace(0, 8, 100)
+filler_array = np.zeros(len(time))
 
-# Data for plot
-tm = np.linspace(0, 8, 100)
-us = np.zeros(len(tm))
-ys = np.zeros(len(tm))
+for y in [y2]:
+    for i in range(len(time)):
+        filler_array[i] += y.subs(t, time[i])
 
-# Substitute numerical values for u and y
-for u in [u1, u2, u3]:
-    for i in range(len(tm)):
-        us[i] += u.subs(t, tm[i])
-for y in [y1, y2, y3]:
-    for i in range(len(tm)):
-        ys[i] += y.subs(t, tm[i])
-# Plot results
 plt.figure()
-plt.plot(tm, us, label='u(t)')
-plt.plot(tm, ys, label='y(t)')
+plt.plot(time, filler_array, label='y(t)')
 plt.legend()
 plt.xlabel('Time')
+plt.ylabel('f(t)')
 plt.show()
